@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <unistd.h>
 #include <dirent.h>
 #include <mpi.h>
 #include <vector>
