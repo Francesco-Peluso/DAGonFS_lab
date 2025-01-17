@@ -19,6 +19,7 @@ using namespace std;
 int DistributedCode::mpiRank = -1;
 int DistributedCode::mpiWorldSize = 0;
 string DistributedCode::fsPath = string();
+string DistributedCode::unmountScript = string();
 
 DistributedCode *DistributedCode::instance = nullptr;
 DataBlockManager *DistributedCode::dataBlockManager = nullptr;
@@ -36,6 +37,9 @@ DistributedCode::DistributedCode(int rank, int worldSize, const char* mountpoint
 	mpiWorldSize = worldSize;
 	fsPath = mountpointPath;
 	fsPath += "/"+to_string(mpiRank);
+	unmountScript = mountpointPath;
+	unmountScript += "/unmount.sh ";
+	unmountScript += fsPath;
 	dataBlockManager = DataBlockManager::getInstance(mpiWorldSize);
 }
 
