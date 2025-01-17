@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <cstring>
-#include <unistd.h>
 #include <dirent.h>
 #include <mpi.h>
 #include <vector>
@@ -19,7 +18,6 @@ using namespace std;
 int DistributedCode::mpiRank = -1;
 int DistributedCode::mpiWorldSize = 0;
 string DistributedCode::fsPath = string();
-string DistributedCode::unmountScript = string();
 
 DistributedCode *DistributedCode::instance = nullptr;
 DataBlockManager *DistributedCode::dataBlockManager = nullptr;
@@ -37,9 +35,6 @@ DistributedCode::DistributedCode(int rank, int worldSize, const char* mountpoint
 	mpiWorldSize = worldSize;
 	fsPath = mountpointPath;
 	fsPath += "/"+to_string(mpiRank);
-	unmountScript = mountpointPath;
-	unmountScript += "/unmount.sh ";
-	cout << "Process " << mpiRank << " - unmount script file path: '" << unmountScript << "'" << endl;
 	dataBlockManager = DataBlockManager::getInstance(mpiWorldSize);
 }
 
@@ -56,22 +51,22 @@ void DistributedCode::start() {
 		MPI_Status status;
 		MPI_Recv(&request,sizeof(RequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 		switch (request.type) {
-		case WRITE_REQ:
+		case WRITE:
 			if (mpiRank != status.MPI_SOURCE) {
 				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Write()" <<endl;
 				IORequestPacket ioRequest;
-				MPI_Status writeStatus;
-				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &writeStatus);
+				MPI_Status status;
+				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 				cout << "Process " << mpiRank << " - Received WRITE from P"<<status.MPI_SOURCE<<": ioRequest.inode="<<ioRequest.inode<<", ioRequest.fileSize="<<ioRequest.fileSize<< endl;
 				DAGonFS_Write(status.MPI_SOURCE, MPI_IN_PLACE, ioRequest.inode, ioRequest.fileSize);
 			}
 			break;
-		case READ_REQ:
+		case READ:
 			if (mpiRank != status.MPI_SOURCE) {
 				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Read()" <<endl;
 				IORequestPacket ioRequest;
-				MPI_Status readStatus;
-				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &readStatus);
+				MPI_Status status;
+				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 				cout << "Process " << mpiRank << " - Received READ from P"<<status.MPI_SOURCE<<":"<< endl;
 				cout << "\tioRequest.inode="<<ioRequest.inode<<endl;
 				cout << "\tioRequest.fileSize="<<ioRequest.fileSize<<endl;
@@ -81,27 +76,27 @@ void DistributedCode::start() {
 			}
 			//DAGonFS_Read();
 			break;
-		case CREATE_FILE_REQ:
+		case CREATE_FILE:
 			if (mpiRank != status.MPI_SOURCE) {
 				createFile();
 			}
 			break;
-		case DELETE_FILE_REQ:
+		case DELETE_FILE:
 			if (mpiRank != status.MPI_SOURCE) {
 				deleteFile();
 			}
 			break;
-		case CREATE_DIR_REQ:
+		case CREATE_DIR:
 			if (mpiRank != status.MPI_SOURCE) {
 				createDir();
 			}
 			break;
-		case DELETE_DIR_REQ:
+		case DELETE_DIR:
 			if (mpiRank != status.MPI_SOURCE) {
 				deleteDir();
 			}
 			break;
-		case TERMINATE_REQ:
+		case TERMINATE:
 			cout << "Process " << mpiRank << " - Received termination request" <<endl;
 			running = false;
 			if (mpiRank != status.MPI_SOURCE) {
@@ -116,8 +111,7 @@ void DistributedCode::start() {
 
 void DistributedCode::unmountFileSystem() {
 	FileSystem::unmountFromThread = true;
-	unmountScript += fsPath;
-	cout << "Process " << mpiRank << " - Unmounting with: '" << unmountScript << "'" << endl;
+	string unmountScript = fsPath + "/../unmount.sh " + fsPath;
 	system(unmountScript.c_str());
 }
 

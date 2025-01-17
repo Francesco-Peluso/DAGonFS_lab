@@ -16,7 +16,6 @@ private:
 	static int mpiRank;
 	static int mpiWorldSize;
 	static std::string fsPath;
-	static std::string unmountScript;
 
 	static DistributedCode *instance;
 	DistributedCode(int rank, int worldSize, const char *mountpointPath);
