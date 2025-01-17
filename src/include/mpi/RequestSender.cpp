@@ -15,7 +15,7 @@ using namespace std;
 
 void RequestSender::sendWriteRequest(int sourceRank, int mpiWorldSize) {
 	RequestPacket loopRequest;
-	loopRequest.type = WRITE;
+	loopRequest.type = WRITE_REQ;
 	for (int i=0; i<mpiWorldSize; i++) {
 		MPI_Request loop;
 		if (i != sourceRank) {
@@ -26,7 +26,7 @@ void RequestSender::sendWriteRequest(int sourceRank, int mpiWorldSize) {
 
 void RequestSender::sendReadRequest(int sourceRank, int mpiWorldSize) {
 	RequestPacket loopRequest;
-	loopRequest.type = READ;
+	loopRequest.type = READ_REQ;
 	for (int i=0; i<mpiWorldSize; i++) {
 		MPI_Request loop;
 		if (i != sourceRank) {
@@ -37,7 +37,7 @@ void RequestSender::sendReadRequest(int sourceRank, int mpiWorldSize) {
 
 void RequestSender::sendCreateFileRequest(string name, int sourceRank, int mpiWorldSize) {
 	RequestPacket loopRequest;
-	loopRequest.type = CREATE_FILE;
+	loopRequest.type = CREATE_FILE_REQ;
 	FileCreationRequest fileCreateRequest;
 	memcpy(fileCreateRequest.name, name.c_str(), name.size());
 	for (int i=0 ; i<mpiWorldSize ; i++) {
@@ -51,7 +51,7 @@ void RequestSender::sendCreateFileRequest(string name, int sourceRank, int mpiWo
 
 void RequestSender::sendDeleteFileRequest(string name, int sourceRank, int mpiWorldSize) {
 	RequestPacket loopRequest;
-	loopRequest.type = DELETE_FILE;
+	loopRequest.type = DELETE_FILE_REQ;
 	FileDeletionRequest fileDeleteRequest;
 	memcpy(fileDeleteRequest.name, name.c_str(), name.size());
 	for (int i=0 ; i<mpiWorldSize ; i++) {
@@ -65,7 +65,7 @@ void RequestSender::sendDeleteFileRequest(string name, int sourceRank, int mpiWo
 
 void RequestSender::sendCreateDirectoryRequest(string dirAbsPath, int sourceRank, int mpiWorldSize) {
 	RequestPacket loopRequest;
-	loopRequest.type = CREATE_DIR;
+	loopRequest.type = CREATE_DIR_REQ;
 	DirectoryCreationRequest dirCreateRequest;
 	memcpy(dirCreateRequest.absolutePath, dirAbsPath.c_str(), dirAbsPath.size());
 	for (int i=0; i< mpiWorldSize; i++) {
@@ -78,21 +78,20 @@ void RequestSender::sendCreateDirectoryRequest(string dirAbsPath, int sourceRank
 
 void RequestSender::sendDeleteDirectoryRequest(string dirAbsPath, int sourceRank, int mpiWorldSize) {
 	RequestPacket loopRequest;
-	loopRequest.type = DELETE_DIR;
+	loopRequest.type = DELETE_DIR_REQ;
 	DirectoryDeletionRequest dirDeleteRequest;
 	memcpy(dirDeleteRequest.absolutePath, dirAbsPath.c_str(), dirAbsPath.size());
 	for (int i=0; i< mpiWorldSize; i++) {
 		MPI_Request loop,dir;
 		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
-		if (i != sourceRank)
-			MPI_Isend(&dirDeleteRequest, sizeof(DirectoryDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &dir);
+		MPI_Isend(&dirDeleteRequest, sizeof(DirectoryDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &dir);
 	}
 }
 
 void RequestSender::sendTerminationRequest(int sourceRank, int mpiWorldSize) {
 	cout << "Process " << sourceRank << " - Sending termination request" << endl;
 	RequestPacket termationRequest;
-	termationRequest.type = TERMINATE;
+	termationRequest.type = TERMINATE_REQ;
 	for (int i=0; i<mpiWorldSize; i++) {
 		MPI_Request request;
 		MPI_Isend(&termationRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &request);

@@ -52,7 +52,7 @@ void DistributedCode::start() {
 		MPI_Status status;
 		MPI_Recv(&request,sizeof(RequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 		switch (request.type) {
-		case WRITE:
+		case WRITE_REQ:
 			if (mpiRank != status.MPI_SOURCE) {
 				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Write()" <<endl;
 				IORequestPacket ioRequest;
@@ -62,7 +62,7 @@ void DistributedCode::start() {
 				DAGonFS_Write(status.MPI_SOURCE, MPI_IN_PLACE, ioRequest.inode, ioRequest.fileSize);
 			}
 			break;
-		case READ:
+		case READ_REQ:
 			if (mpiRank != status.MPI_SOURCE) {
 				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Read()" <<endl;
 				IORequestPacket ioRequest;
@@ -77,27 +77,27 @@ void DistributedCode::start() {
 			}
 			//DAGonFS_Read();
 			break;
-		case CREATE_FILE:
+		case CREATE_FILE_REQ:
 			if (mpiRank != status.MPI_SOURCE) {
 				createFile();
 			}
 			break;
-		case DELETE_FILE:
+		case DELETE_FILE_REQ:
 			if (mpiRank != status.MPI_SOURCE) {
 				deleteFile();
 			}
 			break;
-		case CREATE_DIR:
+		case CREATE_DIR_REQ:
 			if (mpiRank != status.MPI_SOURCE) {
 				createDir();
 			}
 			break;
-		case DELETE_DIR:
+		case DELETE_DIR_REQ:
 			if (mpiRank != status.MPI_SOURCE) {
 				deleteDir();
 			}
 			break;
-		case TERMINATE:
+		case TERMINATE_REQ:
 			cout << "Process " << mpiRank << " - Received termination request" <<endl;
 			running = false;
 			if (mpiRank != status.MPI_SOURCE) {
