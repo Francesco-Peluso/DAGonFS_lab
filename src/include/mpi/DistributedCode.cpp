@@ -36,6 +36,8 @@ DistributedCode::DistributedCode(int rank, int worldSize, const char* mountpoint
 	mpiWorldSize = worldSize;
 	fsPath = mountpointPath;
 	fsPath += "/"+to_string(mpiRank);
+	unmountScript = mountpointPath;
+	unmountScript += "/unmount.sh " + fsPath;
 	dataBlockManager = DataBlockManager::getInstance(mpiWorldSize);
 }
 
@@ -47,14 +49,14 @@ void DistributedCode::setup() {
 void DistributedCode::start() {
 	bool running = true;
 	while (running) {
-		//cout << "Process " << mpiRank << " - Waiting for a request" <<endl;
+		cout << "Process " << mpiRank << " - Waiting for a request" <<endl;
 		RequestPacket request;
 		MPI_Status status;
 		MPI_Recv(&request,sizeof(RequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 		switch (request.type) {
 		case WRITE:
 			if (mpiRank != status.MPI_SOURCE) {
-				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Write()" <<endl;
+				cout << "Process " << mpiRank << " - Invoking DAGonFS_Write()" <<endl;
 				IORequestPacket ioRequest;
 				MPI_Status status;
 				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
@@ -64,7 +66,7 @@ void DistributedCode::start() {
 			break;
 		case READ:
 			if (mpiRank != status.MPI_SOURCE) {
-				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Read()" <<endl;
+				cout << "Process " << mpiRank << " - Invoking DAGonFS_Read()" <<endl;
 				IORequestPacket ioRequest;
 				MPI_Status status;
 				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
@@ -75,7 +77,6 @@ void DistributedCode::start() {
 				cout << "\tioRequest.offset="<<ioRequest.offset<<endl;
 				DAGonFS_Read(status.MPI_SOURCE, ioRequest.inode, ioRequest.fileSize, ioRequest.reqSize, ioRequest.offset);
 			}
-			//DAGonFS_Read();
 			break;
 		case CREATE_FILE:
 			if (mpiRank != status.MPI_SOURCE) {
@@ -112,7 +113,6 @@ void DistributedCode::start() {
 
 void DistributedCode::unmountFileSystem() {
 	FileSystem::unmountFromThread = true;
-	string unmountScript = fsPath + "/../unmount.sh " + fsPath;
 	system(unmountScript.c_str());
 }
 
