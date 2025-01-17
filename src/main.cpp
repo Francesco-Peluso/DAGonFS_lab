@@ -69,6 +69,8 @@ int main(int argc, char *argv[]){
 
     mpiProcessThread.join();
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
     cout << "Process rank=" << mpiRank << " is about to terminate in main.cpp" <<endl;
     MPI_Finalize();
 

@@ -93,8 +93,7 @@ void RequestSender::sendTerminationRequest(int sourceRank, int mpiWorldSize) {
 	RequestPacket termationRequest;
 	termationRequest.type = TERMINATE_REQ;
 	for (int i=0; i<mpiWorldSize; i++) {
-		MPI_Request request;
-		MPI_Isend(&termationRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &request);
+		MPI_Send(&termationRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 	}
 
 }
