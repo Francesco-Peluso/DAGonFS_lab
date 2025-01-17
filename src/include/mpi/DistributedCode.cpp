@@ -174,7 +174,7 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 	}
 	else {
 		MPI_Scatterv(MPI_IN_PLACE, scatterCounts, scatterDispls, MPI_BYTE, localScatBuf, scatterCounts[mpiRank], MPI_BYTE, sourceRank, MPI_COMM_WORLD);
-		cout << "Process " << mpiRank << "!="<<sourceRank<<" - Received Scatterv content : " << (char *) localScatBuf << endl;
+		cout << "Process " << mpiRank << "!="<<sourceRank<<" - Received Scatterv" << endl;
 	}
 
 	for (int i=0; i<effectiveBlocks; i++) {
@@ -184,9 +184,7 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 	}
 
 	PointerPacket *addresses = new PointerPacket[numberOfBlocksForRequest];
-	cout << "Process " << mpiRank <<" - Allgather-ing..." << endl;
 	MPI_Allgatherv(localGathBuf, gatherCounts[mpiRank], MPI_BYTE, addresses, gatherCounts, gatherDispls, MPI_BYTE, MPI_COMM_WORLD);
-	cout << "Process " << mpiRank <<" - Allgather done!" << endl;
 
 	Blocks *blocksManager = Blocks::getInstance();
 	vector<DataBlock *> &dataBlockList = blocksManager->getDataBlockListOfInode(inode);
