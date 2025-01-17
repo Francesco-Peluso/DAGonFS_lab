@@ -60,8 +60,8 @@ void DistributedCode::start() {
 			if (mpiRank != status.MPI_SOURCE) {
 				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Write()" <<endl;
 				IORequestPacket ioRequest;
-				MPI_Status status;
-				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+				MPI_Status writeStatus;
+				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &writeStatus);
 				cout << "Process " << mpiRank << " - Received WRITE from P"<<status.MPI_SOURCE<<": ioRequest.inode="<<ioRequest.inode<<", ioRequest.fileSize="<<ioRequest.fileSize<< endl;
 				DAGonFS_Write(status.MPI_SOURCE, MPI_IN_PLACE, ioRequest.inode, ioRequest.fileSize);
 			}
@@ -70,8 +70,8 @@ void DistributedCode::start() {
 			if (mpiRank != status.MPI_SOURCE) {
 				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Read()" <<endl;
 				IORequestPacket ioRequest;
-				MPI_Status status;
-				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+				MPI_Status readStatus;
+				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &readStatus);
 				cout << "Process " << mpiRank << " - Received READ from P"<<status.MPI_SOURCE<<":"<< endl;
 				cout << "\tioRequest.inode="<<ioRequest.inode<<endl;
 				cout << "\tioRequest.fileSize="<<ioRequest.fileSize<<endl;

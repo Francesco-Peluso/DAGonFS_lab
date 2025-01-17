@@ -42,8 +42,8 @@ void RequestSender::sendCreateFileRequest(string name, int sourceRank, int mpiWo
 	memcpy(fileCreateRequest.name, name.c_str(), name.size());
 	for (int i=0 ; i<mpiWorldSize ; i++) {
 		MPI_Request loop,file;
-		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
 		if (i != sourceRank) {
+			MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
 			MPI_Isend(&fileCreateRequest, sizeof(FileCreationRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &file);
 		}
 	}
@@ -56,8 +56,8 @@ void RequestSender::sendDeleteFileRequest(string name, int sourceRank, int mpiWo
 	memcpy(fileDeleteRequest.name, name.c_str(), name.size());
 	for (int i=0 ; i<mpiWorldSize ; i++) {
 		MPI_Request loop,file;
-		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
 		if (i != sourceRank) {
+			MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
 			MPI_Isend(&fileDeleteRequest, sizeof(FileDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &file);
 		}
 	}
@@ -70,9 +70,10 @@ void RequestSender::sendCreateDirectoryRequest(string dirAbsPath, int sourceRank
 	memcpy(dirCreateRequest.absolutePath, dirAbsPath.c_str(), dirAbsPath.size());
 	for (int i=0; i< mpiWorldSize; i++) {
 		MPI_Request loop,dir;
-		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
-		if (i != sourceRank)
+		if (i != sourceRank) {
+			MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
 			MPI_Isend(&dirCreateRequest, sizeof(DirectoryCreationRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &dir);
+		}
 	}
 }
 
@@ -83,8 +84,10 @@ void RequestSender::sendDeleteDirectoryRequest(string dirAbsPath, int sourceRank
 	memcpy(dirDeleteRequest.absolutePath, dirAbsPath.c_str(), dirAbsPath.size());
 	for (int i=0; i< mpiWorldSize; i++) {
 		MPI_Request loop,dir;
-		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
-		MPI_Isend(&dirDeleteRequest, sizeof(DirectoryDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &dir);
+		if (i != sourceRank) {
+			MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
+			MPI_Isend(&dirDeleteRequest, sizeof(DirectoryDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &dir);
+		}
 	}
 }
 
@@ -93,6 +96,8 @@ void RequestSender::sendTerminationRequest(int sourceRank, int mpiWorldSize) {
 	RequestPacket termationRequest;
 	termationRequest.type = TERMINATE_REQ;
 	for (int i=0; i<mpiWorldSize; i++) {
+		//MPI_Request loop;
+		//MPI_Isend(&termationRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
 		MPI_Send(&termationRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 	}
 
