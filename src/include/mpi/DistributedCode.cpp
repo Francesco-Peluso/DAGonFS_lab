@@ -19,6 +19,7 @@ using namespace std;
 int DistributedCode::mpiRank = -1;
 int DistributedCode::mpiWorldSize = 0;
 string DistributedCode::fsPath = string();
+string DistributedCode::unmountScript = string();
 
 DistributedCode *DistributedCode::instance = nullptr;
 DataBlockManager *DistributedCode::dataBlockManager = nullptr;
