@@ -17,9 +17,8 @@ void RequestSender::sendWriteRequest(int sourceRank, int mpiWorldSize) {
 	RequestPacket loopRequest;
 	loopRequest.type = WRITE;
 	for (int i=0; i<mpiWorldSize; i++) {
-		MPI_Request loop;
 		if (i != sourceRank) {
-			MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
+			MPI_Send(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 		}
 	}
 }
@@ -28,9 +27,8 @@ void RequestSender::sendReadRequest(int sourceRank, int mpiWorldSize) {
 	RequestPacket loopRequest;
 	loopRequest.type = READ;
 	for (int i=0; i<mpiWorldSize; i++) {
-		MPI_Request loop;
 		if (i != sourceRank) {
-			MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
+			MPI_Send(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 		}
 	}
 }
@@ -41,10 +39,9 @@ void RequestSender::sendCreateFileRequest(string name, int sourceRank, int mpiWo
 	FileCreationRequest fileCreateRequest;
 	memcpy(fileCreateRequest.name, name.c_str(), name.size());
 	for (int i=0 ; i<mpiWorldSize ; i++) {
-		MPI_Request loop,file;
-		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
+		MPI_Send(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 		if (i != sourceRank) {
-			MPI_Isend(&fileCreateRequest, sizeof(FileCreationRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &file);
+			MPI_Send(&fileCreateRequest, sizeof(FileCreationRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 		}
 	}
 }
@@ -55,10 +52,9 @@ void RequestSender::sendDeleteFileRequest(string name, int sourceRank, int mpiWo
 	FileDeletionRequest fileDeleteRequest;
 	memcpy(fileDeleteRequest.name, name.c_str(), name.size());
 	for (int i=0 ; i<mpiWorldSize ; i++) {
-		MPI_Request loop,file;
-		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
+		MPI_Send(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 		if (i != sourceRank) {
-			MPI_Isend(&fileDeleteRequest, sizeof(FileDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &file);
+			MPI_Send(&fileDeleteRequest, sizeof(FileDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 		}
 	}
 }
@@ -69,10 +65,9 @@ void RequestSender::sendCreateDirectoryRequest(string dirAbsPath, int sourceRank
 	DirectoryCreationRequest dirCreateRequest;
 	memcpy(dirCreateRequest.absolutePath, dirAbsPath.c_str(), dirAbsPath.size());
 	for (int i=0; i< mpiWorldSize; i++) {
-		MPI_Request loop,dir;
-		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
+		MPI_Send(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 		if (i != sourceRank)
-			MPI_Isend(&dirCreateRequest, sizeof(DirectoryCreationRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &dir);
+			MPI_Send(&dirCreateRequest, sizeof(DirectoryCreationRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 	}
 }
 
@@ -82,10 +77,9 @@ void RequestSender::sendDeleteDirectoryRequest(string dirAbsPath, int sourceRank
 	DirectoryDeletionRequest dirDeleteRequest;
 	memcpy(dirDeleteRequest.absolutePath, dirAbsPath.c_str(), dirAbsPath.size());
 	for (int i=0; i< mpiWorldSize; i++) {
-		MPI_Request loop,dir;
-		MPI_Isend(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &loop);
+		MPI_Send(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 		if (i != sourceRank)
-			MPI_Isend(&dirDeleteRequest, sizeof(DirectoryDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD, &dir);
+			MPI_Send(&dirDeleteRequest, sizeof(DirectoryDeletionRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 	}
 }
 
@@ -94,13 +88,7 @@ void RequestSender::sendTerminationRequest(int sourceRank, int mpiWorldSize) {
 	RequestPacket termationRequest;
 	termationRequest.type = TERMINATE;
 	for (int i=0; i<mpiWorldSize; i++) {
-		MPI_Request request;
-		if (i==sourceRank){
-                  MPI_Isend(&termationRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_SELF, &request);
-		}
-		else{
-		  MPI_Isend(&termationRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &request);
-		}
+          MPI_Send(&termationRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 	}
 
 }
