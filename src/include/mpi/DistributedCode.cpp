@@ -39,6 +39,7 @@ DistributedCode::DistributedCode(int rank, int worldSize, const char* mountpoint
 	fsPath += "/"+to_string(mpiRank);
 	unmountScript = mountpointPath;
 	unmountScript += "/unmount.sh ";
+	cout << "Process " << mpiRank << " - unmount script file path: '" << unmountScript << "'" << endl;
 	dataBlockManager = DataBlockManager::getInstance(mpiWorldSize);
 }
 
@@ -116,6 +117,7 @@ void DistributedCode::start() {
 void DistributedCode::unmountFileSystem() {
 	FileSystem::unmountFromThread = true;
 	unmountScript += fsPath;
+	cout << "Process " << mpiRank << " - Unmounting with: '" << unmountScript << "'" << endl;
 	system(unmountScript.c_str());
 }
 
