@@ -928,6 +928,7 @@ void FileSystem::FuseOpen(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info*
     // TODO: Handle permissions on files:
     //    else if ((fi->flags & 3) != O_RDONLY)
     //        fuse_reply_err(req, EACCES);
+    /*
     if ( fi->flags & (O_WRONLY | O_TRUNC) ) {
         startWriteTime = MPI_Wtime();
         LOG4CPLUS_DEBUG(FSLogger, FSLogger.getName() << "\tFile opened in write only mode or with O_TRUNC mode, the content must be deleted");
@@ -946,6 +947,7 @@ void FileSystem::FuseOpen(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info*
 
         //
     }
+    */
     // TODO: We seem to be able to delete a file and copy it back without a new inode being created. The only evidence is the open call. How do we handle this?
 
     LOG4CPLUS_TRACE(FSLogger, FSLogger.getName() << "\topen for " << ino << ". with flags " << fi->flags);
@@ -967,6 +969,7 @@ void FileSystem::FuseFlush(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info
 
     LOG4CPLUS_TRACE(FSLogger, FSLogger.getName() << "\tflush for " << ino);
 
+    /*
     File *file_p = dynamic_cast<File *>(INodeManager->getINodeByINodeNumber(ino));
     string fileContent = "Timing for distributed operation on inode="+to_string(ino)+"\n";
     if (file_p->m_buf != nullptr) {
@@ -975,26 +978,26 @@ void FileSystem::FuseFlush(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info
             RequestSender::sendWriteRequest(mpiRank, mpiWorldSize);
             distributedProcessCode->DAGonFS_Write(mpiRank, file_p->m_buf, ino, file_p->m_fuseEntryParam.attr.st_size);
             endWriteTime = MPI_Wtime();
-            /*
-            fileContent += "Total write time: "+to_string(endWriteTime - startWriteTime)+"\n";
-            fileContent += "Time for Scat-Gath in DAGonFS_Write: "+ to_string(MasterProcess->DAGonFSWriteSGElapsedTime) +"\n";
-            fileContent += "Time for entire DAGonFS_Write: "+ to_string(MasterProcess->lastWriteTime) +"\n";
-            */
+
+            //fileContent += "Total write time: "+to_string(endWriteTime - startWriteTime)+"\n";
+            //fileContent += "Time for Scat-Gath in DAGonFS_Write: "+ to_string(MasterProcess->DAGonFSWriteSGElapsedTime) +"\n";
+            //fileContent += "Time for entire DAGonFS_Write: "+ to_string(MasterProcess->lastWriteTime) +"\n";
+
             file_p->removeWaiting();
         }
         else {
             endReadTime = MPI_Wtime();
-            /*
-            fileContent += "Total read time: "+to_string(endReadTime - startReadTime)+"s\n";
-            fileContent += "Time for Scat-Gath in DAGonFS_Read: "+ to_string(MasterProcess->DAGonFSReadSGElapsedTime) +"\n";
-            fileContent += "Time for entire DAGonFS_Read: "+ to_string(MasterProcess->lastReadTime) +"\n";
-            */
+
+            //fileContent += "Total read time: "+to_string(endReadTime - startReadTime)+"s\n";
+            //fileContent += "Time for Scat-Gath in DAGonFS_Read: "+ to_string(MasterProcess->DAGonFSReadSGElapsedTime) +"\n";
+            //fileContent += "Time for entire DAGonFS_Read: "+ to_string(MasterProcess->lastReadTime) +"\n";
+
         }
         LOG4CPLUS_DEBUG(FSLogger, FSLogger.getName() << "Freeing file_p->m_buf");
         free(file_p->m_buf);
         file_p->m_buf = nullptr;
     }
-
+    */
 
     fuse_reply_err(req, 0);
     /*
@@ -1030,6 +1033,7 @@ void FileSystem::FuseRelease(fuse_req_t req, fuse_ino_t ino, struct fuse_file_in
 
     LOG4CPLUS_TRACE(FSLogger, FSLogger.getName() <<  "\trelease for " << ino);
 
+    /*
     File *file_p = dynamic_cast<File *>(INodeManager->getINodeByINodeNumber(ino));
     if (file_p != nullptr) {
         if (file_p->m_buf != nullptr) {
@@ -1038,6 +1042,7 @@ void FileSystem::FuseRelease(fuse_req_t req, fuse_ino_t ino, struct fuse_file_in
             file_p->m_buf = nullptr;
         }
     }
+    */
 
     fuse_reply_err(req, 0);
 
@@ -1527,6 +1532,7 @@ void FileSystem::FuseCreate(fuse_req_t req, fuse_ino_t parent, const char* name,
 
     LOG4CPLUS_TRACE(FSLogger, FSLogger.getName() <<  "\tcreate for " << ino << " with name " << name << " in " << parent);
     inode_p->Lookup();
+    /*
     if ( fi->flags & (O_WRONLY | O_TRUNC) ) {
         LOG4CPLUS_DEBUG(FSLogger, FSLogger.getName() << " File created with O_WRONLY | O_TRUNC");
         startWriteTime = MPI_Wtime();
@@ -1536,26 +1542,9 @@ void FileSystem::FuseCreate(fuse_req_t req, fuse_ino_t parent, const char* name,
             file_p->m_fuseEntryParam.attr.st_blocks = 0;
         }
     }
-    /*
-    cout << fi->cache_readdir <<endl;
-    cout << fi->direct_io <<endl;
-    cout << fi->fh <<endl;
-    cout << fi->flags <<endl;
-    cout << fi->flock_release <<endl;
-    cout << fi->flush <<endl;
-    cout << fi->keep_cache <<endl;
-    cout << fi->lock_owner <<endl;
-    cout << fi->noflush <<endl;
-    cout << fi->nonseekable <<endl;
-    cout << fi->padding <<endl;
-    cout << fi->padding2 <<endl;
-    cout << fi->parallel_direct_writes <<endl;
-    cout << fi->poll_events <<endl;
-    cout << fi->writepage <<endl;
     */
-    LOG4CPLUS_DEBUG(FSLogger, FSLogger.getName() << " E' QUI CHE MI BLOCCO?");
+
     fuse_reply_create(req, &(inode_p->m_fuseEntryParam), fi);
-    LOG4CPLUS_DEBUG(FSLogger, FSLogger.getName() << " NO SUPERATO");
 
     string fileName = parentDir_p->getDirName() + name;
     if (!createFileFromThread) {
@@ -1563,9 +1552,7 @@ void FileSystem::FuseCreate(fuse_req_t req, fuse_ino_t parent, const char* name,
     }
     createFileFromThread = false;
 
-
     LOG4CPLUS_TRACE(FSLogger, FSLogger.getName() << "Creating " << name << " -> FuseRamFs::FuseCreate completed!");
-
 }
 
 void FileSystem::FuseGetLock(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info* fi, struct flock* lock) {
