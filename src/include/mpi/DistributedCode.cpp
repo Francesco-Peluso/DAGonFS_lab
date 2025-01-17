@@ -322,7 +322,7 @@ void DistributedCode::createFile() {
 	MPI_Recv(&fileCreationRequest,sizeof(FileCreationRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
 	string absPath = fsPath + fileCreationRequest.name;
-	//cout << "Process " << mpiRank << " - Creating file '" << absPath << "'" << endl;
+	cout << "Process " << mpiRank << " - Creating file '" << absPath << "'" << endl;
 
 	FILE *file = fopen(absPath.c_str(), "w");
 	fclose(file);
@@ -336,7 +336,7 @@ void DistributedCode::deleteFile() {
 	MPI_Recv(&fileDeleteRequest,sizeof(FileDeletionRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
 	string absPath = fsPath + fileDeleteRequest.name;
-	//cout << "Process " << mpiRank << " - Deleting file '" << absPath << "'" << endl;
+	cout << "Process " << mpiRank << " - Deleting file '" << absPath << "'" << endl;
 
 	unlink(absPath.c_str());
 }
@@ -346,10 +346,10 @@ void DistributedCode::createDir() {
 	DirectoryCreationRequest dirCreateRequest;
 
 	MPI_Status status;
-	MPI_Recv(dirCreateRequest.absolutePath,sizeof(DirectoryCreationRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+	MPI_Recv(&dirCreateRequest, sizeof(DirectoryCreationRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
 	string absPath = fsPath + dirCreateRequest.absolutePath;
-	//cout << "Process " << mpiRank << " - Creating directory '" << absPath << "'" << endl;
+	cout << "Process " << mpiRank << " - Creating directory '" << absPath << "'" << endl;
 
 	mkdir(absPath.c_str(), 0777);
 }
@@ -359,10 +359,10 @@ void DistributedCode::deleteDir() {
 	DirectoryDeletionRequest dirDeleteRequest;
 
 	MPI_Status status;
-	MPI_Recv(dirDeleteRequest.absolutePath,sizeof(DirectoryDeletionRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+	MPI_Recv(&dirDeleteRequest, sizeof(DirectoryDeletionRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
 	string absPath = fsPath + dirDeleteRequest.absolutePath;
-	//cout << "Process " << mpiRank << " - Deleting directory '" << absPath << "'" << endl;
+	cout << "Process " << mpiRank << " - Deleting directory '" << absPath << "'" << endl;
 
 	rmdir(absPath.c_str());
 }
