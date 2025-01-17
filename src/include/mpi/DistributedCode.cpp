@@ -124,9 +124,8 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 		ioRequest.fileSize = fileSize;
 		cout << "Process " << mpiRank << " - Notify all other process for writing operation: ioRequest.inode="<<ioRequest.inode<<", ioRequest.fileSize="<<ioRequest.fileSize<< endl;
 		for (int i=0; i<mpiWorldSize; i++) {
-			MPI_Request request;
 			if (i != mpiRank) {
-				MPI_Isend(&ioRequest,sizeof(IORequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &request);
+				MPI_Send(&ioRequest,sizeof(IORequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 			}
 		}
 	}
@@ -195,7 +194,7 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 
 	delete[] scatterCounts;
 	delete[] scatterDispls;
-	free(localScatBuf);
+	delete[] localScatBuf;
 	delete[] gatherCounts;
 	delete[] gatherDispls;
 	delete[] localGathBuf;
@@ -227,9 +226,8 @@ void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fil
 		cout << "\tioRequest.reqSize="<<ioRequest.reqSize<<endl;
 		cout << "\tioRequest.offset="<<ioRequest.offset<<endl;
 		for (int i=0; i<mpiWorldSize; i++) {
-			MPI_Request request;
 			if (i != mpiRank) {
-				MPI_Isend(&ioRequest,sizeof(IORequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD, &request);
+				MPI_Send(&ioRequest,sizeof(IORequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
 			}
 		}
 	}
@@ -311,7 +309,7 @@ void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fil
 	delete[] addressesToScat;
 	delete[] gatherCounts;
 	delete[] gatherDispls;
-	free(localGathBuf);
+	delete[] localGathBuf;
 
 	return readBuff;
 }
