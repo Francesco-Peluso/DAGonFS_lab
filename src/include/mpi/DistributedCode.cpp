@@ -169,12 +169,12 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 	}
 
 	if (mpiRank == sourceRank) {
+		cout << "Process " << mpiRank << "=="<<sourceRank<<" - Sending Scatterv" << endl;
 		MPI_Scatterv(buffer, scatterCounts, scatterDispls, MPI_BYTE, localScatBuf, scatterCounts[mpiRank], MPI_BYTE, sourceRank, MPI_COMM_WORLD);
-		cout << "Process " << mpiRank << "=="<<sourceRank<<" - Sent Scatterv" << endl;
 	}
 	else {
+		cout << "Process " << mpiRank << "!="<<sourceRank<<" - Receiving Scatterv" << endl;
 		MPI_Scatterv(MPI_IN_PLACE, scatterCounts, scatterDispls, MPI_BYTE, localScatBuf, scatterCounts[mpiRank], MPI_BYTE, sourceRank, MPI_COMM_WORLD);
-		cout << "Process " << mpiRank << "!="<<sourceRank<<" - Received Scatterv" << endl;
 	}
 
 	for (int i=0; i<effectiveBlocks; i++) {
