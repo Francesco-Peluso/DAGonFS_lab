@@ -46,17 +46,18 @@ int FileSystem::mpiRank = -1;
 
 int FileSystem::mpiWorldSize = 0;
 
-FILE *FileSystem::timeFile1 = nullptr;
+FILE *FileSystem::timeFile = nullptr;
 double FileSystem::startWriteTime = 0.0;
 double FileSystem::endWriteTime = 0.0;
 double FileSystem::startReadTime = 0.0;
 double FileSystem::endReadTime = 0.0;
-FILE *FileSystem::timeFile2 = nullptr;
 bool FileSystem::unmountFromThread = false;
 bool FileSystem::createFileFromThread = false;
 bool FileSystem::deleteFileFromThread = false;
 bool FileSystem::createDirFromThread = false;
 bool FileSystem::deleteDirFromThread = false;
+
+DistributedCode *FileSystem::distributedProcessCode = nullptr;
 
 /**
  * Constructor of our file system in RAM. It initializes all fuse operation to its methods.
@@ -111,6 +112,7 @@ FileSystem::FileSystem(int rank, int mpi_world_size) {
 
     mpiRank = rank;
     mpiWorldSize = mpi_world_size;
+    distributedProcessCode = DistributedCode::getInstance(mpiRank,mpiWorldSize,"");
 
     LogLevel ll = DAGONFS_LOG_LEVEL;
     FSLogger = Logger::getInstance("FuseFileSystem.logger Process " + to_string(mpiRank) + " - ");
@@ -118,7 +120,7 @@ FileSystem::FileSystem(int rank, int mpi_world_size) {
 }
 
 FileSystem::~FileSystem() {
-    fclose(timeFile1);
+    fclose(timeFile);
 }
 
 /**
@@ -160,8 +162,8 @@ int FileSystem::start(int argc,char *argv[]) {
     }
     else closedir(timeDir);
     string timesFileName = timesDirName + "copy_times.txt";
-    timeFile1 = fopen(timesFileName.c_str(), "w");
-    if (!timeFile1) {
+    timeFile = fopen(timesFileName.c_str(), "w");
+    if (!timeFile) {
         LOG4CPLUS_ERROR(FSLogger, FSLogger.getName() <<  "failed to create times file");
         return ret;
     }
@@ -975,20 +977,16 @@ void FileSystem::FuseFlush(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info
             RequestSender::sendWriteRequest(mpiRank, mpiWorldSize);
             distributedProcessCode->DAGonFS_Write(mpiRank, file_p->m_buf, ino, file_p->m_fuseEntryParam.attr.st_size);
             endWriteTime = MPI_Wtime();
-            /*
             fileContent += "Total write time: "+to_string(endWriteTime - startWriteTime)+"\n";
-            fileContent += "Time for Scat-Gath in DAGonFS_Write: "+ to_string(MasterProcess->DAGonFSWriteSGElapsedTime) +"\n";
-            fileContent += "Time for entire DAGonFS_Write: "+ to_string(MasterProcess->lastWriteTime) +"\n";
-            */
+            fileContent += "Time for Scat-Gath in DAGonFS_Write: "+ to_string(distributedProcessCode->getDAGonFSWriteSGElapsedTime()) +"\n";
+            fileContent += "Time for entire DAGonFS_Write: "+ to_string(distributedProcessCode->getLastWriteTime()) +"\n";
             file_p->removeWaiting();
         }
         else {
             endReadTime = MPI_Wtime();
-            /*
             fileContent += "Total read time: "+to_string(endReadTime - startReadTime)+"s\n";
-            fileContent += "Time for Scat-Gath in DAGonFS_Read: "+ to_string(MasterProcess->DAGonFSReadSGElapsedTime) +"\n";
-            fileContent += "Time for entire DAGonFS_Read: "+ to_string(MasterProcess->lastReadTime) +"\n";
-            */
+            fileContent += "Time for Scat-Gath in DAGonFS_Read: "+ to_string(distributedProcessCode->getDAGonFSReadSGElapsedTime()) +"\n";
+            fileContent += "Time for entire DAGonFS_Read: "+ to_string(distributedProcessCode->getLastReadTime()) +"\n";
         }
         LOG4CPLUS_DEBUG(FSLogger, FSLogger.getName() << "Freeing file_p->m_buf");
         free(file_p->m_buf);

@@ -23,6 +23,11 @@ private:
 
 	static DataBlockManager *dataBlockManager;
 
+	static double DAGonFSWriteSGElapsedTime;
+	static double lastWriteTime;
+	static double DAGonFSReadSGElapsedTime;
+	static double lastReadTime;
+
 public:
 	static DistributedCode *getInstance(int rank, int worldSize, const char *mountpointPath);
 	void setup();
@@ -34,6 +39,11 @@ public:
 	static void createDir();
 	static void deleteDir();
 	static void unmountFileSystem();
+
+	double getDAGonFSWriteSGElapsedTime() { return DAGonFSWriteSGElapsedTime; };
+	double getDAGonFSReadSGElapsedTime() { return DAGonFSReadSGElapsedTime; };
+	double getLastWriteTime() { return lastWriteTime; };
+	double getLastReadTime() { return lastReadTime; };
 };
 
 
