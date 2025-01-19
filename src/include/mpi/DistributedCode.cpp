@@ -59,32 +59,32 @@ void DistributedCode::setup() {
 void DistributedCode::start() {
 	bool running = true;
 	while (running) {
-		cout << "Process " << mpiRank << " - Waiting for a request" <<endl;
+		//cout << "Process " << mpiRank << " - Waiting for a request" <<endl;
 		RequestPacket request;
 		MPI_Status status;
 		MPI_Recv(&request,sizeof(RequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 		switch (request.type) {
 		case WRITE:
 			if (mpiRank != status.MPI_SOURCE) {
-				cout << "Process " << mpiRank << " - Invoking DAGonFS_Write()" <<endl;
+				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Write()" <<endl;
 				IORequestPacket ioRequest;
 				MPI_Status status;
 				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-				cout << "Process " << mpiRank << " - Received WRITE from P"<<status.MPI_SOURCE<<": ioRequest.inode="<<ioRequest.inode<<", ioRequest.fileSize="<<ioRequest.fileSize<< endl;
+				//cout << "Process " << mpiRank << " - Received WRITE from P"<<status.MPI_SOURCE<<": ioRequest.inode="<<ioRequest.inode<<", ioRequest.fileSize="<<ioRequest.fileSize<< endl;
 				DAGonFS_Write(status.MPI_SOURCE, MPI_IN_PLACE, ioRequest.inode, ioRequest.fileSize);
 			}
 			break;
 		case READ:
 			if (mpiRank != status.MPI_SOURCE) {
-				cout << "Process " << mpiRank << " - Invoking DAGonFS_Read()" <<endl;
+				//cout << "Process " << mpiRank << " - Invoking DAGonFS_Read()" <<endl;
 				IORequestPacket ioRequest;
 				MPI_Status status;
 				MPI_Recv(&ioRequest, sizeof(IORequestPacket), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-				cout << "Process " << mpiRank << " - Received READ from P"<<status.MPI_SOURCE<<":"<< endl;
-				cout << "\tioRequest.inode="<<ioRequest.inode<<endl;
-				cout << "\tioRequest.fileSize="<<ioRequest.fileSize<<endl;
-				cout << "\tioRequest.reqSize="<<ioRequest.reqSize<<endl;
-				cout << "\tioRequest.offset="<<ioRequest.offset<<endl;
+				//cout << "Process " << mpiRank << " - Received READ from P"<<status.MPI_SOURCE<<":"<< endl;
+				//cout << "\tioRequest.inode="<<ioRequest.inode<<endl;
+				//cout << "\tioRequest.fileSize="<<ioRequest.fileSize<<endl;
+				//cout << "\tioRequest.reqSize="<<ioRequest.reqSize<<endl;
+				//cout << "\tioRequest.offset="<<ioRequest.offset<<endl;
 				DAGonFS_Read(status.MPI_SOURCE, ioRequest.inode, ioRequest.fileSize, ioRequest.reqSize, ioRequest.offset);
 			}
 			break;
@@ -109,7 +109,7 @@ void DistributedCode::start() {
 			}
 			break;
 		case TERMINATE:
-			cout << "Process " << mpiRank << " - Received termination request" <<endl;
+			//cout << "Process " << mpiRank << " - Received termination request" <<endl;
 			running = false;
 			if (mpiRank != status.MPI_SOURCE) {
 				unmountFileSystem();
@@ -131,7 +131,7 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 		IORequestPacket ioRequest;
 		ioRequest.inode = inode;
 		ioRequest.fileSize = fileSize;
-		cout << "Process " << mpiRank << " - Notify all other process for writing operation: ioRequest.inode="<<ioRequest.inode<<", ioRequest.fileSize="<<ioRequest.fileSize<< endl;
+		//cout << "Process " << mpiRank << " - Notify all other process for writing operation: ioRequest.inode="<<ioRequest.inode<<", ioRequest.fileSize="<<ioRequest.fileSize<< endl;
 		for (int i=0; i<mpiWorldSize; i++) {
 			if (i != mpiRank) {
 				MPI_Send(&ioRequest,sizeof(IORequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
@@ -176,11 +176,11 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 
 	double startScatter = MPI_Wtime();
 	if (mpiRank == sourceRank) {
-		cout << "Process " << mpiRank << "=="<<sourceRank<<" - Sending Scatterv" << endl;
+		//cout << "Process " << mpiRank << "=="<<sourceRank<<" - Sending Scatterv" << endl;
 		MPI_Scatterv(buffer, scatterCounts, scatterDispls, MPI_BYTE, localScatBuf, scatterCounts[mpiRank], MPI_BYTE, sourceRank, MPI_COMM_WORLD);
 	}
 	else {
-		cout << "Process " << mpiRank << "!="<<sourceRank<<" - Receiving Scatterv" << endl;
+		//cout << "Process " << mpiRank << "!="<<sourceRank<<" - Receiving Scatterv" << endl;
 		MPI_Scatterv(MPI_IN_PLACE, scatterCounts, scatterDispls, MPI_BYTE, localScatBuf, scatterCounts[mpiRank], MPI_BYTE, sourceRank, MPI_COMM_WORLD);
 	}
 	double endScatter = MPI_Wtime();
@@ -229,7 +229,7 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 	//DEBUG
 	int i=0;
 	for (auto &dataBlock : dataBlockList) {
-		cout << "Process " << mpiRank << " - address["<<i++<<"]="<<dataBlock->getData()<<endl;
+		//cout << "Process " << mpiRank << " - address["<<i++<<"]="<<dataBlock->getData()<<endl;
 	}
 }
 
@@ -240,11 +240,11 @@ void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fil
 		ioRequest.fileSize = fileSize;
 		ioRequest.reqSize = reqSize;
 		ioRequest.offset = offset;
-		cout << "Process " << mpiRank << " - Notify all other process for reading operation" << endl;
-		cout << "\tioRequest.inode="<<ioRequest.inode<<endl;
-		cout << "\tioRequest.fileSize="<<ioRequest.fileSize<<endl;
-		cout << "\tioRequest.reqSize="<<ioRequest.reqSize<<endl;
-		cout << "\tioRequest.offset="<<ioRequest.offset<<endl;
+		//cout << "Process " << mpiRank << " - Notify all other process for reading operation" << endl;
+		//cout << "\tioRequest.inode="<<ioRequest.inode<<endl;
+		//cout << "\tioRequest.fileSize="<<ioRequest.fileSize<<endl;
+		//cout << "\tioRequest.reqSize="<<ioRequest.reqSize<<endl;
+		//cout << "\tioRequest.offset="<<ioRequest.offset<<endl;
 		for (int i=0; i<mpiWorldSize; i++) {
 			if (i != mpiRank) {
 				MPI_Send(&ioRequest,sizeof(IORequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
@@ -347,7 +347,7 @@ void DistributedCode::createFile() {
 	MPI_Recv(&fileCreationRequest,sizeof(FileCreationRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
 	string absPath = fsPath + fileCreationRequest.name;
-	cout << "Process " << mpiRank << " - Creating file '" << absPath << "'" << endl;
+	//cout << "Process " << mpiRank << " - Creating file '" << absPath << "'" << endl;
 
 	FILE *file = fopen(absPath.c_str(), "w");
 	fclose(file);
@@ -361,7 +361,7 @@ void DistributedCode::deleteFile() {
 	MPI_Recv(&fileDeleteRequest,sizeof(FileDeletionRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
 	string absPath = fsPath + fileDeleteRequest.name;
-	cout << "Process " << mpiRank << " - Deleting file '" << absPath << "'" << endl;
+	//cout << "Process " << mpiRank << " - Deleting file '" << absPath << "'" << endl;
 
 	unlink(absPath.c_str());
 }
@@ -374,7 +374,7 @@ void DistributedCode::createDir() {
 	MPI_Recv(&dirCreateRequest, sizeof(DirectoryCreationRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
 	string absPath = fsPath + dirCreateRequest.absolutePath;
-	cout << "Process " << mpiRank << " - Creating directory '" << absPath << "'" << endl;
+	//cout << "Process " << mpiRank << " - Creating directory '" << absPath << "'" << endl;
 
 	mkdir(absPath.c_str(), 0777);
 }
@@ -387,7 +387,7 @@ void DistributedCode::deleteDir() {
 	MPI_Recv(&dirDeleteRequest, sizeof(DirectoryDeletionRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
 
 	string absPath = fsPath + dirDeleteRequest.absolutePath;
-	cout << "Process " << mpiRank << " - Deleting directory '" << absPath << "'" << endl;
+	//cout << "Process " << mpiRank << " - Deleting directory '" << absPath << "'" << endl;
 
 	rmdir(absPath.c_str());
 }
