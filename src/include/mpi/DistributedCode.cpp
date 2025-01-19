@@ -253,6 +253,8 @@ void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fil
 	if (fileSize == 0)
 		return nullptr;
 
+	double startRead = MPI_Wtime();
+
 	size_t numberOfBlocksForRequest;
 	if (reqSize > fileSize)
 		numberOfBlocksForRequest = fileSize / FILE_SYSTEM_SINGLE_BLOCK_SIZE + (fileSize % FILE_SYSTEM_SINGLE_BLOCK_SIZE > 0);
@@ -322,7 +324,9 @@ void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fil
 	MPI_Gatherv(localGathBuf, gatherCounts[mpiRank], MPI_BYTE, mpiRank == sourceRank ? readBuff : MPI_IN_PLACE, gatherCounts, gatherDispls, MPI_BYTE, sourceRank, MPI_COMM_WORLD);
 	double endGather = MPI_Wtime();
 	DAGonFSReadSGElapsedTime = (endGather - startGather) + (endScatter - startScatter);
-
+	double endRead = MPI_Wtime();
+	lastReadTime = endRead - startRead;
+	
 	return readBuff;
 }
 
