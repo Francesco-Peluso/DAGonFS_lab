@@ -23,6 +23,13 @@ private:
 
 	static DataBlockManager *dataBlockManager;
 
+	static int *scatterCounts;
+	static int *scatterDispls;
+	static int scatterOffset;
+	static int *gatherCounts;
+	static int *gatherDispls;
+	static int gatherOffset;
+
 	static double DAGonFSWriteSGElapsedTime;
 	static double lastWriteTime;
 	static double DAGonFSReadSGElapsedTime;

@@ -23,6 +23,13 @@ string DistributedCode::unmountScript = string();
 
 DistributedCode *DistributedCode::instance = nullptr;
 DataBlockManager *DistributedCode::dataBlockManager = nullptr;
+
+int *DistributedCode::scatterCounts = nullptr;
+int *DistributedCode::scatterDispls = nullptr;
+int DistributedCode::scatterOffset = 0;
+int *DistributedCode::gatherCounts = nullptr;
+int *DistributedCode::gatherDispls = nullptr;
+int DistributedCode::gatherOffset = 0;
 double DistributedCode::lastWriteTime = 0.0;
 double DistributedCode::lastReadTime = 0.0;
 double DistributedCode::DAGonFSWriteSGElapsedTime = 0.0;
@@ -44,6 +51,13 @@ DistributedCode::DistributedCode(int rank, int worldSize, const char* mountpoint
 	unmountScript = mountpointPath;
 	unmountScript += "/unmount.sh " + fsPath;
 	dataBlockManager = DataBlockManager::getInstance(mpiWorldSize);
+
+	scatterCounts = new int[mpiWorldSize];
+	scatterDispls = new int[mpiWorldSize];
+	scatterOffset = 0;
+	gatherCounts = new int[mpiWorldSize];
+	gatherDispls = new int[mpiWorldSize];
+	gatherOffset = 0;
 
 	lastWriteTime = 0.0;
 	lastReadTime = 0.0;
@@ -148,9 +162,7 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 
 	//Scatter dei dati
 	void *localScatBuf = malloc(effectiveBlocks*FILE_SYSTEM_SINGLE_BLOCK_SIZE);
-	int *scatterCounts = new int[mpiWorldSize];
-	int *scatterDispls = new int[mpiWorldSize];
-	int scatterOffset = 0;
+	scatterOffset = 0;
 	for (int i=0; i<mpiWorldSize; i++) {
 		//Calculating elements
 		scatterCounts[i] = ( blockPerProcess + (i < remainingBlocks) ) * FILE_SYSTEM_SINGLE_BLOCK_SIZE;
@@ -162,9 +174,7 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 
 	//Gather dei puntatori
 	PointerPacket *localGathBuf = new PointerPacket[effectiveBlocks];
-	int *gatherCounts = new int[mpiWorldSize];
-	int *gatherDispls = new int[mpiWorldSize];
-	int gatherOffset = 0;
+	gatherOffset = 0;
 	for (int i=0; i<mpiWorldSize; i++) {
 		//Calculating elements
 		gatherCounts[i] = ( blockPerProcess + (i < remainingBlocks) ) * sizeof(PointerPacket);
@@ -212,13 +222,6 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 	double endWrite = MPI_Wtime();
 	lastWriteTime = endWrite - startWrite;
 
-	delete[] scatterCounts;
-	delete[] scatterDispls;
-	delete[] localScatBuf;
-	delete[] gatherCounts;
-	delete[] gatherDispls;
-	delete[] localGathBuf;
-
 	if (mpiRank != sourceRank) {
 		Nodes *INodeManager = Nodes::getInstance();
 		INode *inode_p = INodeManager->getINodeByINodeNumber(inode);
@@ -226,11 +229,6 @@ void DistributedCode::DAGonFS_Write(int sourceRank, void *buffer, fuse_ino_t ino
 		inode_p->m_fuseEntryParam.attr.st_blocks = dataBlockList.size();
 	}
 
-	//DEBUG
-	int i=0;
-	for (auto &dataBlock : dataBlockList) {
-		//cout << "Process " << mpiRank << " - address["<<i++<<"]="<<dataBlock->getData()<<endl;
-	}
 }
 
 void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fileSize, size_t reqSize, off_t offset) {
@@ -285,9 +283,7 @@ void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fil
 	}
 
 	PointerPacket *localScatBuf = new PointerPacket[effectiveBlocks];
-	int *scatterCounts = new int[mpiWorldSize];
-	int *scatterDispls = new int[mpiWorldSize];
-	int scatterOffset = 0;
+	scatterOffset = 0;
 	for (int i=0; i<mpiWorldSize; i++) {
 		//Calculating elements
 		scatterCounts[i] = ( blockPerProcess + (i < remainingBlocks) ) * sizeof(PointerPacket);
@@ -299,9 +295,7 @@ void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fil
 
 	//Gather dei dati
 	void *localGathBuf = malloc(effectiveBlocks*FILE_SYSTEM_SINGLE_BLOCK_SIZE);
-	int *gatherCounts = new int[mpiWorldSize];
-	int *gatherDispls = new int[mpiWorldSize];
-	int gatherOffset = 0;
+	gatherOffset = 0;
 	for (int i=0; i<mpiWorldSize; i++) {
 		//Calculating elements
 		gatherCounts[i] = ( blockPerProcess + (i < remainingBlocks) ) * FILE_SYSTEM_SINGLE_BLOCK_SIZE;
@@ -328,13 +322,6 @@ void* DistributedCode::DAGonFS_Read(int sourceRank, fuse_ino_t inode, size_t fil
 	MPI_Gatherv(localGathBuf, gatherCounts[mpiRank], MPI_BYTE, mpiRank == sourceRank ? readBuff : MPI_IN_PLACE, gatherCounts, gatherDispls, MPI_BYTE, sourceRank, MPI_COMM_WORLD);
 	double endGather = MPI_Wtime();
 	DAGonFSReadSGElapsedTime = (endGather - startGather) + (endScatter - startScatter);
-
-	delete[] scatterCounts;
-	delete[] scatterDispls;
-	delete[] addressesToScat;
-	delete[] gatherCounts;
-	delete[] gatherDispls;
-	delete[] localGathBuf;
 
 	return readBuff;
 }
