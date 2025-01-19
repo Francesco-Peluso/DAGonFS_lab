@@ -995,10 +995,8 @@ void FileSystem::FuseFlush(fuse_req_t req, fuse_ino_t ino, struct fuse_file_info
 
 
     fuse_reply_err(req, 0);
-    /*
     fileContent += "\n";
-    fwrite(fileContent.c_str(),sizeof(char),fileContent.length(),timeFile1);
-    */
+    fwrite(fileContent.c_str(),sizeof(char),fileContent.length(),timeFile);
     LOG4CPLUS_TRACE(FSLogger, FSLogger.getName() << "Flushing file -> FuseRamFs::FuseFlush completed!");
 }
 
