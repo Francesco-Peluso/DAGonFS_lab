@@ -45,8 +45,8 @@ int main(int argc, char *argv[]){
 
     //MPI
     //Inizialize MPI
-    int mpiWorldSize, mpiRank;
-    MPI_Init(&argc, &argv);
+    int mpiWorldSize, mpiRank, provided;
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &provided);
 
     //MPI
     //Get number of involved processes
