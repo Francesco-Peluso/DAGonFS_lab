@@ -116,6 +116,7 @@ public:
 	static bool deleteFileFromThread;
 	static bool createDirFromThread;
 	static bool deleteDirFromThread;
+	static bool renameFromThread;
 	static bool unmountFromThread;
 
     //Methods

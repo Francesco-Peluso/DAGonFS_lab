@@ -6,8 +6,10 @@
 
 #include <iostream>
 #include <cstring>
+#include <stdio.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <mpi.h>
 #include <vector>
 
@@ -120,6 +122,11 @@ void DistributedCode::start() {
 		case DELETE_DIR:
 			if (mpiRank != status.MPI_SOURCE) {
 				deleteDir();
+			}
+			break;
+		case RENAME:
+			if (mpiRank != status.MPI_SOURCE) {
+				renameHandler();
 			}
 			break;
 		case TERMINATE:
@@ -382,3 +389,19 @@ void DistributedCode::deleteDir() {
 
 	rmdir(absPath.c_str());
 }
+
+void DistributedCode::renameHandler() {
+	FileSystem::renameFromThread = true;
+	RenameRequest renameRequest;
+
+	MPI_Status status;
+	MPI_Recv(&renameRequest, sizeof(RenameRequest), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+
+	string absOldPath = fsPath + renameRequest.oldName;
+	string absNewPath = fsPath + renameRequest.newName;
+
+	rename(absOldPath.c_str(), absNewPath.c_str());
+
+	cout << "Process " << mpiRank << " - old name: '" << absOldPath << "' new name: '" << absNewPath << "'" << endl;
+}
+

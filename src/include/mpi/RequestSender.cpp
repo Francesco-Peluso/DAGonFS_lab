@@ -83,6 +83,20 @@ void RequestSender::sendDeleteDirectoryRequest(string dirAbsPath, int sourceRank
 	}
 }
 
+void RequestSender::sendRenameRequest(std::string oldName, std::string newName, int sourceRank, int mpiWorldSize) {
+	RequestPacket loopRequest;
+	loopRequest.type = RENAME;
+	RenameRequest renameRequest;
+	memcpy(renameRequest.oldName, oldName.c_str(), oldName.size());
+	memcpy(renameRequest.newName, newName.c_str(), newName.size());
+	for (int i=0; i< mpiWorldSize; i++) {
+		MPI_Send(&loopRequest, sizeof(RequestPacket), MPI_BYTE, i, 0, MPI_COMM_WORLD);
+		if (i != sourceRank)
+			MPI_Send(&renameRequest, sizeof(RenameRequest), MPI_BYTE, i, 0, MPI_COMM_WORLD);
+	}
+}
+
+
 void RequestSender::sendTerminationRequest(int sourceRank, int mpiWorldSize) {
 	cout << "Process " << sourceRank << " - Sending termination request" << endl;
 	RequestPacket termationRequest;

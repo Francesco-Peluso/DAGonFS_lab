@@ -16,6 +16,7 @@ public:
 	static void sendDeleteFileRequest(std::string name, int sourceRank, int mpiWorldSize);
 	static void sendCreateDirectoryRequest(std::string dirAbsPath,  int sourceRank, int mpiWorldSize);
 	static void sendDeleteDirectoryRequest(std::string dirAbsPath,  int sourceRank, int mpiWorldSize);
+	static void sendRenameRequest(std::string oldName, std::string newName,  int sourceRank, int mpiWorldSize);
 	static void sendTerminationRequest(int sourceRank, int mpiWorldSize);
 };
 

@@ -56,6 +56,7 @@ bool FileSystem::createFileFromThread = false;
 bool FileSystem::deleteFileFromThread = false;
 bool FileSystem::createDirFromThread = false;
 bool FileSystem::deleteDirFromThread = false;
+bool FileSystem::renameFromThread = false;
 
 DistributedCode *FileSystem::distributedProcessCode = nullptr;
 
@@ -851,6 +852,16 @@ void FileSystem::FuseRename(fuse_req_t req, fuse_ino_t parent, const char* name,
 
     LOG4CPLUS_TRACE(FSLogger, FSLogger.getName() << "\tRename " << name << " in " << parent << " to " << newname << " in " << newparent);
     fuse_reply_err(req, 0);
+
+    if (!renameFromThread) {
+        string oldName = parentDir->getDirName()+name;
+        string newName = newParentDir->getDirName()+newname;
+        cout << oldName << endl;
+        cout << newName << endl;
+        RequestSender::sendRenameRequest(oldName, newName, mpiRank, mpiWorldSize);
+    }
+    else renameFromThread = false;
+
 
     LOG4CPLUS_TRACE(FSLogger, FSLogger.getName() << "Renaming new inode -> FuseRamFs::FuseRename() completed!");
 }

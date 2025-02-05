@@ -7,7 +7,7 @@
 
 #include "../utils/fuse_headers.hpp"
 
-typedef enum {WRITE, READ, CREATE_FILE, DELETE_FILE, CREATE_DIR, DELETE_DIR, TERMINATE} RequestType;
+typedef enum {WRITE, READ, CREATE_FILE, DELETE_FILE, CREATE_DIR, DELETE_DIR, RENAME,TERMINATE} RequestType;
 
 typedef struct RequstPacket {
 	RequestType type;
@@ -42,5 +42,10 @@ typedef struct DirectoryCreationRequest {
 typedef struct DirectoryDeletionRequest {
 	char absolutePath[256] = {0};
 } DirectoryDeletionRequest;
+
+typedef struct enameRequest {
+	char oldName[256] = {0};
+	char newName[256] = {0};
+} RenameRequest;
 
 #endif //MPI_DATA_HPP

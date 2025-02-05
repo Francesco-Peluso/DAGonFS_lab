@@ -45,6 +45,7 @@ public:
 	static void deleteFile();
 	static void createDir();
 	static void deleteDir();
+	static void renameHandler();
 	static void unmountFileSystem();
 
 	double getDAGonFSWriteSGElapsedTime() { return DAGonFSWriteSGElapsedTime; };
