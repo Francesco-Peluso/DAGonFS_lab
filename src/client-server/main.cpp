@@ -2,12 +2,10 @@
 #include <mpi.h>
 #include <sys/stat.h>
 #include <sstream>
-#include <thread>
 
 #include "include/ramfs/FileSystem.hpp"
 #include "include/blocks/Blocks.hpp"
-#include "include/mpi/DataBlockManager.hpp"
-#include "include/mpi/DistributedCode.hpp"
+#include "include/mpi/NodeProcessCode.hpp"
 
 #include "include/utils/log_level.hpp"
 
@@ -45,8 +43,8 @@ int main(int argc, char *argv[]){
 
     //MPI
     //Inizialize MPI
-    int mpiWorldSize, mpiRank, provided;
-    MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &provided);
+    int mpiWorldSize, mpiRank;
+    MPI_Init(&argc, &argv);
 
     //MPI
     //Get number of involved processes
@@ -58,16 +56,23 @@ int main(int argc, char *argv[]){
 
     //MPI
     //The master process will manage the RAM FS
-    Nodes::getInstance();
-    Blocks::getInstance();
-    DataBlockManager::getInstance(mpiWorldSize);
-    DistributedCode *mpiProcess = DistributedCode::getInstance(mpiRank,mpiWorldSize,argv[2]);
-    mpiProcess->setup();
-    std::thread mpiProcessThread(mpiProcess->start);
-    FileSystem ramfs = FileSystem(mpiRank,mpiWorldSize);
-    ramfs.start(argc,argv);
+    if(mpiRank == 0) {
+        Nodes::getInstance();
+        Blocks::getInstance();
+        DataBlockManager::getInstance(mpiWorldSize);
 
-    mpiProcessThread.join();
+        //LIBFUSE
+        //Creation of our RAM FS
+        FileSystem ramfs = FileSystem(mpiRank,mpiWorldSize);
+        ret = ramfs.start(argc, argv);
+        cout << "File system returned value: " << ret << endl;
+    }
+    //MPI
+    //Other process will manage the reading and writing operations
+    else {
+        NodeProcessCode *node = NodeProcessCode::getInstance(mpiRank, mpiWorldSize);
+        node->start();
+    }
 
     cout << "Process rank=" << mpiRank << " is about to terminate in main.cpp" <<endl;
     MPI_Finalize();
