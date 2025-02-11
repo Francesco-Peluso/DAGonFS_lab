@@ -58,85 +58,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(LOG4CPLUS_LIBRARIES ${EXTERNAL_INSTALL_LOCATION}/lib/liblog4cplus.dylib)
 endif()
 
-set(DAGONFS_CS_HEADER_FILES
-        src/client-server/include/ramfs/FileSystem.hpp
-        src/client-server/include/nodes/Nodes.hpp
-        src/client-server/include/nodes/INode.hpp
-        src/client-server/include/nodes/File.hpp
-        src/client-server/include/nodes/Directory.hpp
-        src/client-server/include/nodes/inodes_data_structures.hpp
-        src/client-server/include/nodes/SpecialINode.hpp
-        src/client-server/include/nodes/SymbolicLink.hpp
-        src/client-server/include/nodes/INodeTypes.hpp
-        src/client-server/include/blocks/data_blocks_info.hpp
-        src/client-server/include/blocks/Blocks.hpp
-        src/client-server/include/blocks/DataBlock.hpp
-        src/client-server/include/mpi/DistributedRead.hpp
-        src/client-server/include/mpi/DistributedWrite.hpp
-        src/client-server/include/mpi/MasterProcessCode.hpp
-        src/client-server/include/mpi/NodeProcessCode.hpp
-        src/client-server/include/mpi/mpi_data.hpp
-        src/client-server/include/mpi/DataBlockManager.hpp
-        src/client-server/include/utils/fuse_headers.hpp
-        src/client-server/include/utils/log_level.hpp
-        src/client-server/include/utils/ArgumentParser.hpp
-)
+file(GLOB_RECURSE DAGONFS_CS_HEADER_FILES src/client-server/include/*.hpp)
+file(GLOB_RECURSE DAGONFS_CS_SOURCE_FILES src/client-server/include/*.cpp)
 
-set(DAGONFS_CS_SOURCE_FILES
-        src/client-server/include/ramfs/FileSystem.cpp
-        src/client-server/include/nodes/Nodes.cpp
-        src/client-server/include/nodes/INode.cpp
-        src/client-server/include/nodes/File.cpp
-        src/client-server/include/nodes/Directory.cpp
-        src/client-server/include/nodes/SpecialINode.cpp
-        src/client-server/include/nodes/SymbolicLink.cpp
-        src/client-server/include/blocks/Blocks.cpp
-        src/client-server/include/blocks/DataBlock.cpp
-        src/client-server/include/mpi/MasterProcessCode.cpp
-        src/client-server/include/mpi/NodeProcessCode.cpp
-        src/client-server/include/mpi/DataBlockManager.cpp
-        src/client-server/include/utils/ArgumentParser.cpp
-)
-
-set(DAGONFS_P2P_HEADER_FILES
-        src/peer-to-peer/include/ramfs/FileSystem.hpp
-        src/peer-to-peer/include/nodes/Nodes.hpp
-        src/peer-to-peer/include/nodes/INode.hpp
-        src/peer-to-peer/include/nodes/File.hpp
-        src/peer-to-peer/include/nodes/Directory.hpp
-        src/peer-to-peer/include/nodes/inodes_data_structures.hpp
-        src/peer-to-peer/include/nodes/SpecialINode.hpp
-        src/peer-to-peer/include/nodes/SymbolicLink.hpp
-        src/peer-to-peer/include/nodes/INodeTypes.hpp
-        src/peer-to-peer/include/blocks/data_blocks_info.hpp
-        src/peer-to-peer/include/blocks/Blocks.hpp
-        src/peer-to-peer/include/blocks/DataBlock.hpp
-        src/peer-to-peer/include/mpi/DistributedRead.hpp
-        src/peer-to-peer/include/mpi/DistributedWrite.hpp
-        src/peer-to-peer/include/mpi/mpi_data.hpp
-        src/peer-to-peer/include/mpi/DataBlockManager.hpp
-        src/peer-to-peer/include/utils/fuse_headers.hpp
-        src/peer-to-peer/include/utils/log_level.hpp
-        src/peer-to-peer/include/utils/ArgumentParser.hpp
-        src/peer-to-peer/include/mpi/DistributedCode.hpp
-        src/peer-to-peer/include/mpi/RequestSender.hpp
-)
-
-set(DAGONFS_P2P_SOURCE_FILES
-        src/peer-to-peer/include/ramfs/FileSystem.cpp
-        src/peer-to-peer/include/nodes/Nodes.cpp
-        src/peer-to-peer/include/nodes/INode.cpp
-        src/peer-to-peer/include/nodes/File.cpp
-        src/peer-to-peer/include/nodes/Directory.cpp
-        src/peer-to-peer/include/nodes/SpecialINode.cpp
-        src/peer-to-peer/include/nodes/SymbolicLink.cpp
-        src/peer-to-peer/include/blocks/Blocks.cpp
-        src/peer-to-peer/include/blocks/DataBlock.cpp
-        src/peer-to-peer/include/mpi/DataBlockManager.cpp
-        src/peer-to-peer/include/utils/ArgumentParser.cpp
-        src/peer-to-peer/include/mpi/DistributedCode.cpp
-        src/peer-to-peer/include/mpi/RequestSender.cpp
-)
+file(GLOB_RECURSE DAGONFS_P2P_HEADER_FILES src/peer-to-peer/include/*.hpp)
+file(GLOB_RECURSE DAGONFS_P2P_SOURCE_FILES src/peer-to-peer/include/*.cpp)
 
 # Creation of two executables for two DAGonFS models
 add_executable("${PROJECT_NAME}_CS.exe" src/client-server/main.cpp ${DAGONFS_CS_SOURCE_FILES} ${DAGONFS_CS_HEADER_FILES})
